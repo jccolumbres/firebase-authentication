@@ -58,7 +58,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                         //check if passwords match
                         if (doStringsMatch(mPassword.getText().toString(), mConfirmPassword.getText().toString())) {
-
+                            registerNewEmail(mEmail.getText().toString(), mPassword.getText().toString());
                         } else {
                             Toast.makeText(RegisterActivity.this, "Passwords do not Match", Toast.LENGTH_SHORT).show();
                         }

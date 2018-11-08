@@ -1,6 +1,7 @@
 package courses.pluralsight.com.tabianconsulting;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,12 +13,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
 
     //Firebase
-
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     // widgets
     private EditText mEmail, mPassword;
@@ -31,20 +35,19 @@ public class LoginActivity extends AppCompatActivity {
         mPassword = (EditText) findViewById(R.id.password);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-
-
+        setUpFirebaseAuth();
         Button signIn = (Button) findViewById(R.id.email_sign_in_button);
         signIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
                 //check if the fields are filled out
-                if(!isEmpty(mEmail.getText().toString())
-                        && !isEmpty(mPassword.getText().toString())){
+                if (!isEmpty(mEmail.getText().toString())
+                        && !isEmpty(mPassword.getText().toString())) {
                     Log.d(TAG, "onClick: attempting to authenticate.");
 
 
-                }else{
+                } else {
                     Toast.makeText(LoginActivity.this, "You didn't fill in all the fields.", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -81,31 +84,57 @@ public class LoginActivity extends AppCompatActivity {
 
     /**
      * Return true if the @param is null
+     *
      * @param string
      * @return
      */
-    private boolean isEmpty(String string){
+    private boolean isEmpty(String string) {
         return string.equals("");
     }
 
 
-    private void showDialog(){
+    private void showDialog() {
         mProgressBar.setVisibility(View.VISIBLE);
 
     }
 
-    private void hideDialog(){
-        if(mProgressBar.getVisibility() == View.VISIBLE){
+    private void hideDialog() {
+        if (mProgressBar.getVisibility() == View.VISIBLE) {
             mProgressBar.setVisibility(View.INVISIBLE);
         }
     }
 
-    private void hideSoftKeyboard(){
+    private void hideSoftKeyboard() {
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
     /*
         ----------------------------- Firebase setup ---------------------------------
      */
+    private void setUpFirebaseAuth() {
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
 
+                if (user != null) {
+                    Log.d(TAG, "onAuthStateChanged: signed_in" + user.getUid());
+                } else {
+                    Log.d(TAG, "onAuthStateChanged: signed_out");
+                }
+            }
+        };
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
+    }
 }
