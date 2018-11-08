@@ -1,6 +1,7 @@
 package courses.pluralsight.com.tabianconsulting;
 
 import android.content.Intent;
+import android.support.annotation.LongDef;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +14,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -21,8 +26,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
 
     //Firebase
-    private FirebaseAuth.AuthStateListener mAuthListener;
-
+    FirebaseAuth.AuthStateListener mAuthListener;
     // widgets
     private EditText mEmail, mPassword;
     private ProgressBar mProgressBar;
@@ -35,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         mPassword = (EditText) findViewById(R.id.password);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-        setUpFirebaseAuth();
+        setUpFirebaseListener();
         Button signIn = (Button) findViewById(R.id.email_sign_in_button);
         signIn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,6 +50,19 @@ public class LoginActivity extends AppCompatActivity {
                         && !isEmpty(mPassword.getText().toString())) {
                     Log.d(TAG, "onClick: attempting to authenticate.");
 
+                    showDialog();
+                    FirebaseAuth.getInstance().signInWithEmailAndPassword(mEmail.getText().toString(), mPassword.getText().toString())
+                            .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    hideDialog();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(LoginActivity.this, "Authentication Failed", Toast.LENGTH_SHORT).show();
+                        }
+                    });
 
                 } else {
                     Toast.makeText(LoginActivity.this, "You didn't fill in all the fields.", Toast.LENGTH_SHORT).show();
@@ -111,20 +128,22 @@ public class LoginActivity extends AppCompatActivity {
     /*
         ----------------------------- Firebase setup ---------------------------------
      */
-    private void setUpFirebaseAuth() {
+
+    private void setUpFirebaseListener() {
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
                 if (user != null) {
-                    Log.d(TAG, "onAuthStateChanged: signed_in" + user.getUid());
+                    Log.d(TAG, "onAuthChanged: signed_in" + user.getUid());
                 } else {
-                    Log.d(TAG, "onAuthStateChanged: signed_out");
+                    Log.d(TAG, "onAuthChanged: signed_out");
                 }
             }
         };
     }
+
 
     @Override
     protected void onStop() {
