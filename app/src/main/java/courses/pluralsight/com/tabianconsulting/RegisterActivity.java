@@ -20,13 +20,14 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 
 public class RegisterActivity extends AppCompatActivity {
 
     private static final String TAG = "RegisterActivity";
 
-    private static final String DOMAIN_NAME = "tabian.ca";
+    private static final String DOMAIN_NAME = "gmail.com";
 
     //widgets
     private EditText mEmail, mPassword, mConfirmPassword;
@@ -86,7 +87,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                 if (task.isSuccessful()) {
                     Log.d(TAG, "onComplete: AuthState: " + FirebaseAuth.getInstance().getCurrentUser().getUid());
-
+                    sendVerificationEmail();
                     FirebaseAuth.getInstance().signOut();
 
                     redirectLoginScreen();
@@ -97,6 +98,23 @@ public class RegisterActivity extends AppCompatActivity {
             }
 
         });
+    }
+
+    private void sendVerificationEmail(){
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user != null) {
+            user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isComplete()){
+                        Toast.makeText(RegisterActivity.this, "Email verification sent!", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(RegisterActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            })
+        }
     }
 
     /**
