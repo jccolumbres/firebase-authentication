@@ -1,6 +1,7 @@
 package courses.pluralsight.com.tabianconsulting;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -29,10 +30,26 @@ public class SignedInActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate: started.");
 
         setupFirebaseAuth();
-
+        getUserDetails();
     }
 
+    public void getUserDetails(){
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
+        if (user != null) {
+            String uid = user.getUid();
+            String name = user.getDisplayName();
+            String email = user.getEmail();
+            Uri image = user.getPhotoUrl();
+
+            String properties = "uid :" + uid + "\n" +
+                    "name :" + name + "\n" +
+                    "email :" + email + "\n" +
+                    "image :" + image ;
+
+            Log.d(TAG,properties);
+        }
+    }
     @Override
     protected void onResume() {
         super.onResume();
