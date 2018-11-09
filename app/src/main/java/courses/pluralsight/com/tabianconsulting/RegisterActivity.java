@@ -88,6 +88,8 @@ public class RegisterActivity extends AppCompatActivity {
                     Log.d(TAG, "onComplete: AuthState: " + FirebaseAuth.getInstance().getCurrentUser().getUid());
 
                     FirebaseAuth.getInstance().signOut();
+
+                    redirectLoginScreen();
                 } else {
                     Toast.makeText(RegisterActivity.this, "Unable to register", Toast.LENGTH_SHORT).show();
                 }
