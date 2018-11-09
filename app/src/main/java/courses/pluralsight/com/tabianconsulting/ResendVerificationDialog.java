@@ -15,6 +15,10 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.EmailAuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -43,11 +47,10 @@ public class ResendVerificationDialog extends DialogFragment {
             public void onClick(View v) {
                 Log.d(TAG, "onClick: attempting to resend verification email.");
 
-                if(!isEmpty(mConfirmEmail.getText().toString())
-                        && !isEmpty(mConfirmPassword.getText().toString())){
-
-
-                }else{
+                if (!isEmpty(mConfirmEmail.getText().toString())
+                        && !isEmpty(mConfirmPassword.getText().toString())) {
+                    resendAndAuthenticateEmail(mConfirmEmail.getText().toString(), mConfirmPassword.getText().toString());
+                } else {
                     Toast.makeText(mContext, "all fields must be filled out", Toast.LENGTH_SHORT).show();
                 }
 
@@ -67,7 +70,20 @@ public class ResendVerificationDialog extends DialogFragment {
         return view;
     }
 
-
+    public void resendAndAuthenticateEmail(String email, String password) {
+        AuthCredential credential = EmailAuthProvider.getCredential(email, password);
+        FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "onComplete: reauthenticate success");
+                    sendVerificationEmail();
+                    Toast.makeText(mContext, "Verification email resent", Toast.LENGTH_SHORT).show();
+                    getDialog().dismiss();
+                }
+            }
+        });
+    }
 
     /**
      * sends an email verification link to the user
@@ -82,8 +98,7 @@ public class ResendVerificationDialog extends DialogFragment {
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
                                 Toast.makeText(mContext, "Sent Verification Email", Toast.LENGTH_SHORT).show();
-                            }
-                            else{
+                            } else {
                                 Toast.makeText(mContext, "couldn't send email", Toast.LENGTH_SHORT).show();
                             }
                         }
@@ -94,10 +109,11 @@ public class ResendVerificationDialog extends DialogFragment {
 
     /**
      * Return true if the @param is null
+     *
      * @param string
      * @return
      */
-    private boolean isEmpty(String string){
+    private boolean isEmpty(String string) {
         return string.equals("");
     }
 

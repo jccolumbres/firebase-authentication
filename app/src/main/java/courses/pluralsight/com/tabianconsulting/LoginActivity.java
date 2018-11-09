@@ -91,7 +91,8 @@ public class LoginActivity extends AppCompatActivity {
         resendEmailVerification.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                ResendVerificationDialog dialog = new ResendVerificationDialog();
+                dialog.show(getSupportFragmentManager(), "dialog_resend_email_verification");
             }
         });
 
@@ -136,10 +137,10 @@ public class LoginActivity extends AppCompatActivity {
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
                 if (user != null) {
-                    if (user.isEmailVerified()){
+                    if (user.isEmailVerified()) {
                         Log.d(TAG, "onAuthChanged: Successfully login" + user.getUid());
                         Toast.makeText(LoginActivity.this, "Login Success!" + user.getEmail(), Toast.LENGTH_SHORT).show();
-                    }else{
+                    } else {
                         Log.d(TAG, "onAuthChanged: Email not verified");
                         Toast.makeText(LoginActivity.this, "Check email inbox", Toast.LENGTH_SHORT).show();
                         FirebaseAuth.getInstance().signOut();
